@@ -5,7 +5,9 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.util.JRSaver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pl.itj.dev.services.reportsapi.reports.config.ReportPropertiesConfig;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,22 +18,46 @@ import java.util.Optional;
 @Slf4j
 public class ReportCompileService {
 
-    public void compileAndSaveJasperReport(String path) throws JRException {
-        JRSaver.saveObject(compileReportFromJrxml(path).get(), "C:\\Users\\Tomek\\workspace\\reports-api\\src\\main\\resources\\report_templates\\customer_events.jasper");
+    private final ReportPropertiesConfig reportPropertiesConfig;
+
+    @Autowired
+    public ReportCompileService(ReportPropertiesConfig reportPropertiesConfig) {
+        this.reportPropertiesConfig = reportPropertiesConfig;
     }
 
-    public Optional<JasperReport> compileReportFromJrxml(String path) throws JRException {
-        File reportFile = new File("C:\\Users\\Tomek\\workspace\\reports-api\\src\\main\\resources\\report_templates\\customer_events.jrxml");
+    public void compileAndSaveJasperReport(String templateName) throws JRException {
+        try {
+            Optional<JasperReport> jasperReport = compileReportFromJrxml(templateName);
+            jasperReport.ifPresent(report -> {
+                if(reportPropertiesConfig.isSaveCompiledTemplate()) {
+                    File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
+                    File savedTemplateFile = new File(file, templateName + ".jasper");
+                    try {
+                        JRSaver.saveObject(report, savedTemplateFile);
+                    } catch (JRException e) {
+                        log.error("Cannot save compiled .jasper file.");
+                    }
+                }
+            } );
+        } catch (FileNotFoundException e) {
+            log.error("Template not found.", e);
+        }
+    }
 
-        if(reportFile.exists()) {
-            try {
-                return Optional.of(JasperCompileManager.compileReport(new FileInputStream(reportFile)));
-            } catch (FileNotFoundException e) {
-                log.error("File not found.", e);
+    public Optional<JasperReport> compileReportFromJrxml(String templateName) throws JRException, FileNotFoundException {
+        File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
+
+        if(file.isDirectory()) {
+            File templateFile = new File(file, templateName + ".jrxml");
+            if(templateFile.exists()) {
+                return Optional.of(JasperCompileManager.compileReport(new FileInputStream(templateFile)));
+            }
+            else {
+                log.warn("Given template file does not exist.");
             }
         }
         else {
-            log.info("Report file does not exist.");
+            log.warn("Templates root directory does not exist.");
         }
 
         return Optional.empty();
