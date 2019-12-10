@@ -2,7 +2,6 @@ package pl.itj.dev.services.reportsapi.rest.controllers;
 
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +12,7 @@ import pl.itj.dev.services.reportsapi.reports.config.ReportPropertiesConfig;
 import pl.itj.dev.services.reportsapi.reports.interfaces.ReportService;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/reports")
@@ -32,14 +32,21 @@ public class ReportController {
     @GetMapping("/hello")
     public ResponseEntity<String> helloWorld() throws SQLException, JRException {
         reportCompileService.compileAndSaveJasperReport("customer_events");
-
-        return ResponseEntity.ok("Hellow World! " + reportPropertiesConfig.getJrxmlFilesLocation());
+        return ResponseEntity.ok("Hello World! " + reportPropertiesConfig.getJrxmlFilesLocation());
     }
 
     @GetMapping(value = "/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<InputStreamResource> createPdfReport() {
-        reportService.generatePDF();
+    public ResponseEntity<byte[]> createCustomerPdfReport() {
+        Optional<byte[]> pdfReport = reportService.generatePDF("customer_events");
 
-        return ResponseEntity.ok().body(null);
+        return pdfReport.map(bytes -> ResponseEntity
+                .ok()
+                .contentLength(bytes.length)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(bytes)).orElseGet(() -> ResponseEntity
+                .ok()
+                .contentLength(0L)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(null));
     }
 }
