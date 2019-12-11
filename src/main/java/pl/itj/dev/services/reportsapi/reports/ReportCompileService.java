@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.itj.dev.services.reportsapi.reports.config.ReportPropertiesConfig;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -25,15 +27,35 @@ public class ReportCompileService {
         this.reportPropertiesConfig = reportPropertiesConfig;
     }
 
+    @PostConstruct
+    private void compileAndSaveAllTemplatesOnStartup() {
+        log.info("Compiling report templates on startup in dir: " + reportPropertiesConfig.getJrxmlFilesLocation());
+        File templatesDir = new File(reportPropertiesConfig.getJrxmlFilesLocation());
+
+        File[]  templates = templatesDir.listFiles((dir, name) -> name.endsWith(".jrxml"));
+        if (templates != null) {
+            Stream.of(templates).forEach(template -> {
+                try {
+                    log.info("Compiling report template: " + template.getName());
+                    compileAndSaveJasperReport(template.getName().replace(".jrxml", ""));
+                } catch (JRException e) {
+                    log.error("Error during compiling report template: " + template.getName());
+                }
+            });
+        }
+    }
+
     public void compileAndSaveJasperReport(String templateName) throws JRException {
         try {
             Optional<JasperReport> jasperReport = compileReportFromJrxml(templateName);
             jasperReport.ifPresent(report -> {
-                if(reportPropertiesConfig.isSaveCompiledTemplate()) {
-                    File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
-                    File savedTemplateFile = new File(file, templateName + ".jasper");
+                File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
+                File compiledTemplateFile = new File(file, templateName + ".jasper");
+                File templateFile = new File(file, templateName + ".jrxml");
+
+                if(reportPropertiesConfig.isSaveCompiledTemplate() && (templateFile.lastModified() > compiledTemplateFile.lastModified())) {
                     try {
-                        JRSaver.saveObject(report, savedTemplateFile);
+                        JRSaver.saveObject(report, compiledTemplateFile);
                     } catch (JRException e) {
                         log.error("Cannot save compiled .jasper file.");
                     }
