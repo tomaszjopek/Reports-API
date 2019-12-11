@@ -20,6 +20,8 @@ import java.util.stream.Stream;
 @Slf4j
 public class ReportCompileService {
 
+    public static final String JRXML_EXTENSION = ".jrxml";
+    public static final String JASPER_EXTENSION = ".jasper";
     private final ReportPropertiesConfig reportPropertiesConfig;
 
     @Autowired
@@ -32,12 +34,12 @@ public class ReportCompileService {
         log.info("Compiling report templates on startup in dir: " + reportPropertiesConfig.getJrxmlFilesLocation());
         File templatesDir = new File(reportPropertiesConfig.getJrxmlFilesLocation());
 
-        File[]  templates = templatesDir.listFiles((dir, name) -> name.endsWith(".jrxml"));
+        File[]  templates = templatesDir.listFiles((dir, name) -> name.endsWith(JRXML_EXTENSION));
         if (templates != null) {
             Stream.of(templates).forEach(template -> {
                 try {
                     log.info("Compiling report template: " + template.getName());
-                    compileAndSaveJasperReport(template.getName().replace(".jrxml", ""));
+                    compileAndSaveJasperReport(template.getName().replace(JRXML_EXTENSION, ""));
                 } catch (JRException e) {
                     log.error("Error during compiling report template: " + template.getName());
                 }
@@ -50,19 +52,19 @@ public class ReportCompileService {
             Optional<JasperReport> jasperReport = compileReportFromJrxml(templateName);
             jasperReport.ifPresent(report -> {
                 File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
-                File compiledTemplateFile = new File(file, templateName + ".jasper");
-                File templateFile = new File(file, templateName + ".jrxml");
+                File compiledTemplateFile = new File(file, templateName + JASPER_EXTENSION);
+                File templateFile = new File(file, templateName + JRXML_EXTENSION);
 
                 if(reportPropertiesConfig.isSaveCompiledTemplate() && (templateFile.lastModified() > compiledTemplateFile.lastModified())) {
                     try {
                         JRSaver.saveObject(report, compiledTemplateFile);
                     } catch (JRException e) {
-                        log.error("Cannot save compiled .jasper file.");
+                        log.error("Cannot save compiled .jasper file." + templateName);
                     }
                 }
             } );
         } catch (FileNotFoundException e) {
-            log.error("Template not found.", e);
+            log.error("Template not found: " + templateName , e);
         }
     }
 
@@ -70,16 +72,16 @@ public class ReportCompileService {
         File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
 
         if(file.isDirectory()) {
-            File templateFile = new File(file, templateName + ".jrxml");
+            File templateFile = new File(file, templateName + JRXML_EXTENSION);
             if(templateFile.exists()) {
                 return Optional.of(JasperCompileManager.compileReport(new FileInputStream(templateFile)));
             }
             else {
-                log.warn("Given template file does not exist.");
+                log.warn("Given template file does not exist: " + templateName);
             }
         }
         else {
-            log.warn("Templates root directory does not exist.");
+            log.warn("Templates root directory does not exist: " + reportPropertiesConfig.getJrxmlFilesLocation());
         }
 
         return Optional.empty();
