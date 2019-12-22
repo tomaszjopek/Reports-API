@@ -6,8 +6,8 @@ public interface ReportService {
 
     Optional<byte[]> generatePDF(String reportKey);
 
-    void generateXLSX();
+    Optional<byte[]> generateXLSX(String reportKey);
 
-    void generateCSV();
+    Optional<byte[]> generateCSV(String reportKey);
 
 }

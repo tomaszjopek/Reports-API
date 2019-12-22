@@ -1,4 +1,4 @@
-package pl.itj.dev.services.reportsapi.reports;
+package pl.itj.dev.services.reportsapi.reports.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

@@ -7,6 +7,7 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.util.JRSaver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 import pl.itj.dev.services.reportsapi.reports.config.ReportPropertiesConfig;
 
 import javax.annotation.PostConstruct;
@@ -31,6 +32,8 @@ public class ReportCompileService {
 
     @PostConstruct
     private void compileAndSaveAllTemplatesOnStartup() {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         log.info("Compiling report templates on startup in dir: " + reportPropertiesConfig.getJrxmlFilesLocation());
         File templatesDir = new File(reportPropertiesConfig.getJrxmlFilesLocation());
 
@@ -45,6 +48,9 @@ public class ReportCompileService {
                 }
             });
         }
+
+        stopWatch.stop();
+        log.info("Compiling all reports templates took: " + stopWatch.getTotalTimeMillis() + " [ms]");
     }
 
     public void compileAndSaveJasperReport(String templateName) throws JRException {

@@ -49,4 +49,17 @@ public class ReportController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(null));
     }
+
+    @GetMapping(value = "/xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public ResponseEntity<byte[]> createCustomerXlsxReport() {
+        Optional<byte[]> xlsxReport = reportService.generateXLSX("customer_events");
+
+        return xlsxReport.map(bytes -> ResponseEntity
+                .ok()
+                .contentLength(bytes.length)
+                .body(bytes)).orElseGet(() -> ResponseEntity
+                .ok()
+                .contentLength(0L)
+                .body(null));
+    }
 }
