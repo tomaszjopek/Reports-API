@@ -17,12 +17,13 @@ import java.io.FileNotFoundException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static pl.itj.dev.services.reportsapi.reports.constants.FileExtensions.JASPER_EXTENSION;
+import static pl.itj.dev.services.reportsapi.reports.constants.FileExtensions.JRXML_EXTENSION;
+
 @Service
 @Slf4j
 public class ReportCompileService {
 
-    public static final String JRXML_EXTENSION = ".jrxml";
-    public static final String JASPER_EXTENSION = ".jasper";
     private final ReportPropertiesConfig reportPropertiesConfig;
 
     @Autowired

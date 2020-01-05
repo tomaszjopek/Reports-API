@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
+import pl.itj.dev.services.reportsapi.logging.LoggingService;
 import pl.itj.dev.services.reportsapi.reports.config.ReportPropertiesConfig;
+import pl.itj.dev.services.reportsapi.reports.constants.FileExtensions;
 import pl.itj.dev.services.reportsapi.reports.interfaces.ReportService;
 
 import javax.sql.DataSource;
@@ -18,7 +20,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,30 +30,29 @@ public class ReportGeneratorService implements ReportService {
 
     private final ReportPropertiesConfig reportPropertiesConfig;
     private final DataSource dataSource;
+    private final LoggingService loggingService;
 
     @Autowired
-    public ReportGeneratorService(ReportPropertiesConfig reportPropertiesConfig, DataSource dataSource) {
+    public ReportGeneratorService(ReportPropertiesConfig reportPropertiesConfig, DataSource dataSource, LoggingService loggingService) {
         this.reportPropertiesConfig = reportPropertiesConfig;
         this.dataSource = dataSource;
+        this.loggingService = loggingService;
     }
 
     @Override
-    public Optional<byte[]> generatePDF(String reportKey) {
+    public Optional<byte[]> generatePDF(String reportKey, Map<String, Object> reportParameters) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("CUSTOMER_ID", 1L);
-
         File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
-        File compiledTemplateFile = new File(file, reportKey + ".jasper");
+        File compiledTemplateFile = new File(file, reportKey + FileExtensions.JASPER_EXTENSION);
 
         try {
             JasperReport jasperReport = (JasperReport) JRLoader.loadObject(compiledTemplateFile);
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource.getConnection());
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, reportParameters, dataSource.getConnection());
 
             stopWatch.stop();
-            log.info("Generating pdf report for customer id = 1, took: " + stopWatch.getTotalTimeMillis() + " [ms]");
+            log.info("Generating pdf report for parameters: {}, took: {} [ms]", loggingService.logMap(reportParameters), stopWatch.getTotalTimeMillis());
 
             return Optional.of(JasperExportManager.exportReportToPdf(jasperPrint));
         } catch (JRException | SQLException e) {
@@ -63,16 +63,16 @@ public class ReportGeneratorService implements ReportService {
     }
 
     @Override
-    public Optional<byte[]> generateXLSX(String reportKey) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("CUSTOMER_ID", 1L);
+    public Optional<byte[]> generateXLSX(String reportKey, Map<String, Object> reportParameters) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
 
         File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
-        File compiledTemplateFile = new File(file, reportKey + ".jasper");
+        File compiledTemplateFile = new File(file, reportKey + FileExtensions.JASPER_EXTENSION);
 
         try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             JasperReport jasperReport = (JasperReport) JRLoader.loadObject(compiledTemplateFile);
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource.getConnection());
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, reportParameters, dataSource.getConnection());
 
             OutputStreamExporterOutput outputStreamExporterOutput = new SimpleOutputStreamExporterOutput(outputStream);
 
@@ -84,6 +84,10 @@ public class ReportGeneratorService implements ReportService {
             exporter.setConfiguration(configuration);
 
             exporter.exportReport();
+
+            stopWatch.stop();
+            log.info("Generating XLSX report for parameters: {}, took: {} [ms]", loggingService.logMap(reportParameters), stopWatch.getTotalTimeMillis());
+
             return Optional.of(outputStream.toByteArray());
         } catch (JRException | SQLException | IOException e) {
             log.error("Error during XLSX report generation.");
@@ -98,16 +102,16 @@ public class ReportGeneratorService implements ReportService {
     }
 
     @Override
-    public Optional<byte[]> generateCSV(String reportKey) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("CUSTOMER_ID", 1L);
+    public Optional<byte[]> generateCSV(String reportKey, Map<String, Object> reportParameters) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
 
         File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
-        File compiledTemplateFile = new File(file, reportKey + ".jasper");
+        File compiledTemplateFile = new File(file, reportKey + FileExtensions.JASPER_EXTENSION);
 
         try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             JasperReport jasperReport = (JasperReport) JRLoader.loadObject(compiledTemplateFile);
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource.getConnection());
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, reportParameters, dataSource.getConnection());
 
             SimpleWriterExporterOutput outputStreamExporterOutput = new SimpleWriterExporterOutput(outputStream);
 
@@ -119,6 +123,10 @@ public class ReportGeneratorService implements ReportService {
             exporter.setConfiguration(configuration);
 
             exporter.exportReport();
+
+            stopWatch.stop();
+            log.info("Generating CSV report for parameters: {}, took: {} [ms]", loggingService.logMap(reportParameters), stopWatch.getTotalTimeMillis());
+
             return Optional.of(outputStream.toByteArray());
         } catch (JRException | SQLException | IOException e) {
             log.error("Error during CSV report generation.");
