@@ -62,4 +62,17 @@ public class ReportController {
                 .contentLength(0L)
                 .body(null));
     }
+
+    @GetMapping(value = "/csv", produces = "text/csv")
+    public ResponseEntity<byte[]> createCustomerCsvReport() {
+        Optional<byte[]> csvReport = reportService.generateCSV("customer_events");
+
+        return csvReport.map(bytes -> ResponseEntity
+                .ok()
+                .contentLength(bytes.length)
+                .body(bytes)).orElseGet(() -> ResponseEntity
+                .ok()
+                .contentLength(0L)
+                .body(null));
+    }
 }

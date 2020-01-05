@@ -2,12 +2,10 @@ package pl.itj.dev.services.reportsapi.reports;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.engine.util.JRLoader;
-import net.sf.jasperreports.export.OutputStreamExporterOutput;
-import net.sf.jasperreports.export.SimpleExporterInput;
-import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
-import net.sf.jasperreports.export.SimpleXlsxExporterConfiguration;
+import net.sf.jasperreports.export.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -88,7 +86,7 @@ public class ReportGeneratorService implements ReportService {
             exporter.exportReport();
             return Optional.of(outputStream.toByteArray());
         } catch (JRException | SQLException | IOException e) {
-            log.error("Error during PDF report generation.");
+            log.error("Error during XLSX report generation.");
         }
 
         return Optional.empty();
@@ -101,21 +99,39 @@ public class ReportGeneratorService implements ReportService {
 
     @Override
     public Optional<byte[]> generateCSV(String reportKey) {
-//        Map<String, Object> parameters = new HashMap<>();
-//        parameters.put("CUSTOMER_ID", 1L);
-//
-//        File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
-//        File compiledTemplateFile = new File(file, reportKey + ".jasper");
-//
-//        try {
-//            JasperReport jasperReport = (JasperReport) JRLoader.loadObject(compiledTemplateFile);
-//            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource.getConnection());
-//
-//            return Optional.of(JasperExportManager.exportReportToPdf(jasperPrint));
-//        } catch (JRException | SQLException e) {
-//            log.error("Error during PDF report generation.");
-//        }
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CUSTOMER_ID", 1L);
+
+        File file = new File(reportPropertiesConfig.getJrxmlFilesLocation());
+        File compiledTemplateFile = new File(file, reportKey + ".jasper");
+
+        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            JasperReport jasperReport = (JasperReport) JRLoader.loadObject(compiledTemplateFile);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource.getConnection());
+
+            SimpleWriterExporterOutput outputStreamExporterOutput = new SimpleWriterExporterOutput(outputStream);
+
+            JRCsvExporter exporter = new JRCsvExporter();
+            exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+            exporter.setExporterOutput(outputStreamExporterOutput);
+
+            SimpleCsvExporterConfiguration configuration = prepareCSVReportProperties();
+            exporter.setConfiguration(configuration);
+
+            exporter.exportReport();
+            return Optional.of(outputStream.toByteArray());
+        } catch (JRException | SQLException | IOException e) {
+            log.error("Error during CSV report generation.");
+        }
 
         return Optional.empty();
+    }
+
+    private SimpleCsvExporterConfiguration prepareCSVReportProperties() {
+        SimpleCsvExporterConfiguration csvConfiguration = new SimpleCsvExporterConfiguration();
+        csvConfiguration.setWriteBOM(Boolean.TRUE);
+        csvConfiguration.setRecordDelimiter("\r\n");
+
+        return csvConfiguration;
     }
 }
