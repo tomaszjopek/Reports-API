@@ -35,23 +35,23 @@ public class ReportCompileService {
     private void compileAndSaveAllTemplatesOnStartup() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        log.info("Compiling report templates on startup in dir: " + reportPropertiesConfig.getJrxmlFilesLocation());
+        log.info("Compiling report templates on startup in dir: {}", reportPropertiesConfig.getJrxmlFilesLocation());
         File templatesDir = new File(reportPropertiesConfig.getJrxmlFilesLocation());
 
         File[]  templates = templatesDir.listFiles((dir, name) -> name.endsWith(JRXML_EXTENSION));
         if (templates != null) {
             Stream.of(templates).forEach(template -> {
                 try {
-                    log.info("Compiling report template: " + template.getName());
+                    log.info("Compiling report template: {}", template.getName());
                     compileAndSaveJasperReport(template.getName().replace(JRXML_EXTENSION, ""));
                 } catch (JRException e) {
-                    log.error("Error during compiling report template: " + template.getName());
+                    log.error("Error during compiling report template: {}", template.getName());
                 }
             });
         }
 
         stopWatch.stop();
-        log.info("Compiling all reports templates took: " + stopWatch.getTotalTimeMillis() + " [ms]");
+        log.info("Compiling all reports templates took: {}[ms]", stopWatch.getTotalTimeMillis());
     }
 
     public void compileAndSaveJasperReport(String templateName) throws JRException {
@@ -66,12 +66,12 @@ public class ReportCompileService {
                     try {
                         JRSaver.saveObject(report, compiledTemplateFile);
                     } catch (JRException e) {
-                        log.error("Cannot save compiled .jasper file." + templateName);
+                        log.error("Cannot save compiled .jasper file for template: {}", templateName);
                     }
                 }
             } );
         } catch (FileNotFoundException e) {
-            log.error("Template not found: " + templateName , e);
+            log.error("Template [ {} ] not found.", templateName , e);
         }
     }
 
@@ -84,11 +84,11 @@ public class ReportCompileService {
                 return Optional.of(JasperCompileManager.compileReport(new FileInputStream(templateFile)));
             }
             else {
-                log.warn("Given template file does not exist: " + templateName);
+                log.warn("Given template file does not exist: {}", templateName);
             }
         }
         else {
-            log.warn("Templates root directory does not exist: " + reportPropertiesConfig.getJrxmlFilesLocation());
+            log.warn("Templates root directory does not exist: {}", reportPropertiesConfig.getJrxmlFilesLocation());
         }
 
         return Optional.empty();
