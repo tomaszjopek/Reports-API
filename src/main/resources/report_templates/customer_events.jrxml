@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.10.0.final using JasperReports Library version 6.10.0-unknown  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="customer_events" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="26eb507e-d656-435a-9b24-4787f077373d">
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="customer_events" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="26eb507e-d656-435a-9b24-4787f077373d">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="H2 db test"/>
 	<parameter name="CUSTOMER_ID" class="java.lang.Long"/>
 	<queryString>
 		<![CDATA[select EVENT_TYPE, QUANTITY, COST from event where customer_id = $P{CUSTOMER_ID}]]>
@@ -13,43 +14,69 @@
 	</background>
 	<title>
 		<band height="79" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.spreadsheet.SpreadsheetLayout"/>
 			<staticText>
-				<reportElement x="0" y="0" width="280" height="79" uuid="b87a3fd6-a654-4744-8b05-8cf3547c20b8"/>
+				<reportElement x="0" y="0" width="179" height="79" uuid="b87a3fd6-a654-4744-8b05-8cf3547c20b8"/>
 				<textElement>
-					<font size="36"/>
+					<font size="20"/>
 				</textElement>
-				<text><![CDATA[Customer events]]></text>
+				<text><![CDATA[Customer]]></text>
 			</staticText>
 		</band>
 	</title>
 	<columnHeader>
-		<band height="32" splitType="Stretch">
+		<band height="46" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.spreadsheet.SpreadsheetLayout"/>
 			<staticText>
-				<reportElement x="0" y="0" width="180" height="30" uuid="054b5fc3-123b-4103-992f-d533a4a3ab38"/>
+				<reportElement x="0" y="0" width="180" height="46" uuid="054b5fc3-123b-4103-992f-d533a4a3ab38">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[EVENT TYPE]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="180" y="0" width="200" height="30" uuid="5ecdbaf9-6d35-45b6-954e-66ef22f4debb"/>
+				<reportElement x="180" y="0" width="180" height="46" uuid="5ecdbaf9-6d35-45b6-954e-66ef22f4debb">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[QUANTITY]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="380" y="3" width="180" height="29" uuid="f5ad7bd1-4064-49db-b4ff-274632bc6ef8"/>
+				<reportElement x="360" y="0" width="195" height="46" uuid="f5ad7bd1-4064-49db-b4ff-274632bc6ef8">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[COST]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="32" splitType="Stretch">
+		<band height="24" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.spreadsheet.SpreadsheetLayout"/>
 			<textField>
-				<reportElement x="0" y="0" width="180" height="30" uuid="bf1f96da-f038-4439-b9a0-d6df06fbc0c2"/>
+				<reportElement x="0" y="0" width="180" height="24" uuid="bf1f96da-f038-4439-b9a0-d6df06fbc0c2">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
 				<textFieldExpression><![CDATA[$F{EVENT_TYPE}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="180" y="0" width="200" height="30" uuid="ed220aed-42c1-4adc-8262-b203aa51834b"/>
+				<reportElement x="180" y="0" width="180" height="24" uuid="ed220aed-42c1-4adc-8262-b203aa51834b">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$F{QUANTITY}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="380" y="0" width="180" height="30" uuid="231ed165-009a-48f3-8277-baab7c8ea089"/>
+				<reportElement x="360" y="0" width="195" height="24" uuid="231ed165-009a-48f3-8277-baab7c8ea089">
+					<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$F{COST}]]></textFieldExpression>
 			</textField>
 		</band>
